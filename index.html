@@ -2,16 +2,54 @@
 <html>
 	<head>
 		<title>Lyrics Quiz</title>
-		<link rel="stylesheet" href="style.css">
-		<script src="jquery-1.11.1.min.js"></script>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="style/style.css">
+		<link rel="stylesheet" href="lib/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.css">
+		<script src="lib/jquery-1.11.1.min.js"></script>
+		<script src="lib/handlebars-v2.0.0.js"></script>
+		<script src="lib/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.js"></script>
 	</head>
 	<body>
-		<h1>Lyrics Quiz</h1>
-		<input type="text" id="artist">
-		<input type="submit" id="submit">
-		<div class="content">
+
+		<div data-role="page" id="main">
+			<div data-role="header">
+				<h1>Lyrics Quiz</h1>
+			</div>
+			<div role="main" class="ui-content">
+				<form>
+					<input type="text" id="artist">
+					<input type="submit" id="submit" value="Search for songs">
+				</form>
+				<section id="content">
+					<ul id="songresults" data-role="listview" data-inset="true">
+					</ul>
+				</section>
+			</div>
 		</div>
-		<div class="lyrics"></div>
-		<script src="main.js"></script>
+
+		<div data-role="page" id="lyricspage">
+			<div data-role="header" data-add-back-btn="true">
+				<h1>Lyrics</h1>
+			</div>
+			<div role="main" class="ui-content">
+				<section id="lyrics">
+					<div class="closeLyrics">
+					</div>
+					<ul id="lyricsview" data-role="listview" data-inset="true">
+					</ul>
+				</section>
+			</div>
+		</div>
+
+		<script id="songresultTemplate" type="text/x-handlebars-template">
+			{{#each songs}}
+			<li class="songresult"><a href="#lyricspage" class="openLyrics" data-artist="{{this.artist_name}}" data-title="{{this.title}}">
+				<span class="artist">{{this.artist_name}}</span> - 
+				<span class="title">{{this.title}}</span>
+				</a>
+			</li>
+			{{/each}}
+		</script>
+		<script src="js/main.js"></script>
 	</body>
 </html>
