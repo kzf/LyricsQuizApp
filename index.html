@@ -16,10 +16,80 @@
 				<h1>Lyrics Quiz</h1>
 			</div>
 			<div role="main" class="ui-content">
-				<form>
-					<input type="text" id="artist">
-					<input type="submit" id="submit" value="Search for songs">
+				<a data-role="button" href="#search" data-icon="search">Search for songs</a>
+				<a data-role="button" href="#categories" data-icon="grid">Categories</a>
+				<a data-role="button" id="loadfavs" href="#favs" data-icon="star">My Favourites</a>
+			</div>
+		</div>
+
+		<div data-role="page" id="categories">
+			<div data-role="header" data-add-back-btn="true">
+				<h1>Lyrics Quiz</h1>
+				<a data-role="button" href="#main" data-icon="home" data-iconpos="right" class="ui-btn-right">Main Menu</a>
+			</div>
+			<div role="main" class="ui-content">
+				<div class="ui-grid-a ui-responsive">
+					<div class="ui-block-a"><a data-role="button" href="#">Dire Straits</a></div>
+					<div class="ui-block-b"><a data-role="button" href="#">Dune</a></div>
+				</div>
+				<div class="ui-grid-a ui-responsive">
+					<div class="ui-block-a"><a data-role="button" href="#">Bucks Fizz</a></div>
+					<div class="ui-block-b"><a data-role="button" href="#">Shakira</a></div>
+				</div>
+				<div class="ui-grid-a ui-responsive">
+					<div class="ui-block-a"><a data-role="button" href="#">Joanna Newsom</a></div>
+					<div class="ui-block-b"><a data-role="button" href="#">Metallica</a></div>
+				</div>
+				<div class="ui-grid-a ui-responsive">
+					<div class="ui-block-a"><a data-role="button" href="#">Rammstein</a></div>
+					<div class="ui-block-b"><a data-role="button" href="#">Elastica</a></div>
+				</div>
+			</div>
+		</div>
+
+		<div data-role="page" id="favs">
+			<div data-role="header" data-add-back-btn="true">
+				<h1>Lyrics Quiz</h1>
+				<a data-role="button" href="#main" data-icon="home" data-iconpos="right" class="ui-btn-right">Main Menu</a>
+			</div>
+			<div role="main" class="ui-content">
+				<ul id="favouriteslist" data-role="listview" data-inset="true" data-split-icon="delete" data-theme="a" data-split-theme="b">
+					
+				</ul>
+			</div>
+			<div data-role="popup" id="delete-favourite" class="ui-content" data-overlay-theme="b">
+				<h3>Delete Song</h3>
+				<p>Do you want to remove <span id="songToDelete"></span> from your favourites?</p>
+				<a data-role="button" id="confirmDelete" data-rel="back" data-icon="check" data-theme="b" data-inline="true">Yes</a>
+				<a data-role="button" data-rel="back" data-inline="true">No</a>
+			</div>
+		</div>
+
+		<div data-role="page" id="search">
+			<div data-role="header" data-add-back-btn="true">
+				<h1>Lyrics Quiz</h1>
+				<a data-role="button" href="#main" data-icon="home" data-iconpos="right" class="ui-btn-right">Main Menu</a>
+			</div>
+			<div role="main" class="ui-content">
+				<form id="songform">
+					<input type="text" id="artist" placeholder="Artist Name">
+					<input type="text" id="title" placeholder="Title">
+					<input type="submit" id="submit_song" value="Search for specific song" data-icon="search">
 				</form>
+				<h2 class="centered">or</h2>
+				<form id="combinedform">
+					<input type="text" id="combined" placeholder="Song or Artist Name">
+					<input type="submit" id="submit_combined" value="Search entire database" data-icon="search">
+				</form>
+			</div>
+		</div>
+
+		<div data-role="page" id="results">
+			<div data-role="header" data-add-back-btn="true">
+				<h1>Lyrics Quiz</h1>
+				<a data-role="button" href="#main" data-icon="home" data-iconpos="right" class="ui-btn-right">Main Menu</a>
+			</div>
+			<div role="main" class="ui-content">
 				<section id="content">
 					<ul id="songresults" data-role="listview" data-inset="true">
 					</ul>
@@ -29,7 +99,8 @@
 
 		<div data-role="page" id="lyricspage">
 			<div data-role="header" data-add-back-btn="true">
-				<h1>Lyrics</h1>
+				<h1>Lyrics Quiz</h1>
+				<a data-role="button" href="#main" data-icon="home" data-iconpos="right" class="ui-btn-right">Main Menu</a>
 			</div>
 			<div role="main" class="ui-content">
 				<section id="lyrics">
@@ -38,15 +109,34 @@
 					<ul id="lyricsview" data-role="listview" data-inset="true">
 					</ul>
 				</section>
+				<a data-role="button" id="addFavourite" data-icon="star">Add To Favourites</a>
 			</div>
 		</div>
 
 		<script id="songresultTemplate" type="text/x-handlebars-template">
 			{{#each songs}}
 			<li class="songresult"><a href="#lyricspage" class="openLyrics" data-artist="{{this.artist_name}}" data-title="{{this.title}}">
-				<span class="artist">{{this.artist_name}}</span> - 
-				<span class="title">{{this.title}}</span>
+				<h2>{{this.title}}</h2>
+				<p>{{this.artist_name}}</p>
 				</a>
+			</li>
+			{{/each}}
+		</script>
+		<script id="favouritesTemplate" type="text/x-handlebars-template">
+			{{#each favourites}}
+			<li class="songresult">
+				{{#if this.song}}
+				<a href="#lyricspage" class="openLyrics" data-artist="{{this.artist}}" data-title="{{this.title}}">
+					<h2>{{this.title}}</h2>
+					<p>{{this.artist}}</p>
+				</a>
+				<a href="#delete-favourite" data-index="{{@index}}" class="deleteFavourite" data-rel="popup" data-transition="pop" data-position-to="window">Delete Song?</a>
+				{{else}}
+				<a href="#lyricspage" class="openQuiz" data-quiz="{{this.quiz}}">
+					<h2>{{this.quiz}}</h2>
+				</a>
+				<a href="#delete-favourite" data-index="{{@index}}" class="deleteFavourite" data-rel="popup" data-transition="pop" data-position-to="window">Delete Song?</a>
+				{{/if}}
 			</li>
 			{{/each}}
 		</script>

@@ -1,4 +1,8 @@
+var quizzes = {};
+quizzes['80spop'] = { title: "80s Pop Quiz" }
+
 var songresultTemplate = Handlebars.compile($("#songresultTemplate").html());
+var favouritesTemplate = Handlebars.compile($("#favouritesTemplate").html());
 
 var lyricsQuery = function(a, s) {
 	return "http://api.chartlyrics.com/apiv1.asmx/SearchLyricDirect?artist="
@@ -17,19 +21,30 @@ var lyricsLoader = function(a, t) {
 		} else {
 			console.log(r);
 			var xml = r.results[0];
-console.log($(xml).find("Lyric").text());
+			console.log($(xml).find("Lyric").text());
 			$("#lyricsview").html($(xml).find("Lyric").text()).listview("refresh");
 		}
 	})
+
+	$("#addFavourite").data("song", true).data("title", t).data("artist", a);
 }
 
-$("form").submit(function(e) {
-	e.preventDefault();
-	var a = $("#artist").val();
+$("#addFavourite").click(function() {
+	var self = $(this);
+	var song = Boolean(self.data("song"));
+	var title = self.data("title");
+	var artist = self.data("artist");
+	var favs = JSON.parse(localStorage["favourites"]);
+	favs.push({song: song, artist: artist, title: title});
+	localStorage["favourites"] = JSON.stringify(favs);
+	$("#favouriteslist").html(favouritesTemplate({favourites: favs})).listview("refresh");
+})
+
+var searchByCombined = function(c) {
 	var query = "http://developer.echonest.com/api/v4/song/search?callback=?";
 	$.mobile.loading('show', {text: "Searching songs...", textVisible: true});
 	$.getJSON(query, {
-		combined: a,
+		combined: c,
 		sort: 'song_hotttnesss-desc',
 		format: 'jsonp',
 		bucket: 'song_hotttnesss',
@@ -39,6 +54,7 @@ $("form").submit(function(e) {
 		/* Remove duplicate songs from the response by matching songs with the 
 	     same artist and hotttnesss */
 		console.log(response.response, a, b);
+		$('body').pagecontainer("change", "#results");
 		$.mobile.loading('hide');
 	  var rawsongs = response.response.songs;
 	  var songs = {};
@@ -56,5 +72,71 @@ $("form").submit(function(e) {
 			lyricsLoader(self.data("artist"), self.data("title"));
 		});
 	})
+}
 
+var loadFavourites = function() {
+
+	var updateFavourites = function(favs) {
+		return $("#favouriteslist").html(favouritesTemplate({favourites: favs})).listview("refresh");
+	}
+
+	var deleteFavourite = function(id) {
+		favs.splice(id, 1);
+		localStorage["favourites"] = JSON.stringify(favs);
+		updateFavourites(favs).listview("refresh");
+	}
+
+	var favs = localStorage["favourites"];
+	if (!favs) {
+		favs = [
+			{ song: true,
+				artist: 'Queen',
+			  title: 'Bohemian Rhapsody'},
+			{ song: false,
+				quiz: '80spop' }
+		];
+		localStorage["favourites"] = JSON.stringify(favs);
+	} else {
+		console.log("got it");
+		favs = JSON.parse(favs);
+	}
+
+	updateFavourites(favs);
+
+	$(".deleteFavourite").click(function() {
+		var id = $(this).data("index");
+		var self = favs[id];
+		$("#songToDelete").text(self.song ? self.title : self.quiz);
+		$("#confirmDelete").data("index", id);
+	});
+	
+	$("#confirmDelete").click(function() {
+		var id = $(this).data("index");
+		deleteFavourite(id);
+	});
+
+}
+
+var addFavourite = function(song, title, artist) {
+	var favs = JSON.parse(localStorage["favourites"]);
+	if (song) {
+		favs.push({song: true, artist: artist, title: title});
+	} else {
+		favs.push({song: false, quiz: title});
+	}
+	localStorage["favourites"] = JSON.stringify(favs);
+}
+
+/* Initial Set Up */
+loadFavourites();
+
+
+$("#combinedform").submit(function(e) {
+	e.preventDefault();
+	var c = $("#combined").val();
+	searchByCombined(c);
+});
+
+$(document).bind("mobileinit", function(){
+	$('body').pagecontainer({defaults: true}).pagecontainer("change", "#search");
 });
