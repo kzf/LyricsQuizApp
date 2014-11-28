@@ -41,28 +41,20 @@ $("#addFavourite").click(function() {
 })
 
 var searchByCombined = function(c) {
-	var query = "http://developer.echonest.com/api/v4/song/search?callback=?";
 	$.mobile.loading('show', {text: "Searching songs...", textVisible: true});
-	$.getJSON(query, {
-		combined: c,
-		sort: 'song_hotttnesss-desc',
-		format: 'jsonp',
-		bucket: 'song_hotttnesss',
-		api_key: 'PN76ZGJURTRYCDD3L',
-		results: 100
-	}, function(response, a, b) {
-		/* Remove duplicate songs from the response by matching songs with the 
-	     same artist and hotttnesss */
-		console.log(response.response, a, b);
+	var query = "http://www.chartlyrics.com/search.aspx?q=" + encodeURIComponent(c);
+	var yql = 'http://query.yahooapis.com/v1/public/yql?q=' + 
+						encodeURIComponent('select * from html where url="' + query + 
+						'" and xpath="//tr/td[not(@style)]/a"') + '&format=json&callback=?';
+	$.getJSON(yql, function(r) {
 		$('body').pagecontainer("change", "#results");
 		$.mobile.loading('hide');
-	  var rawsongs = response.response.songs;
-	  var songs = {};
-		for (var i = 0 ; i < rawsongs.length; i++) {
-			var key = rawsongs[i].artist_id + rawsongs[i].song_hotttnesss.toString();
-			if (!(key in songs))
-				songs[key] = rawsongs[i];
-		}
+		var songs = {};
+		console.log(r.query.results.a);
+		r.query.results.a.forEach(function(a, i) {
+			var data = a.content.split(' - ');
+			songs[i] = { artist_name: data[0], title: data[1] };
+		});
 		console.log(songs);
 		$("#songresults").html(songresultTemplate({songs: songs})).listview("refresh");
 		$(".openLyrics").on('click', function() {
@@ -100,8 +92,6 @@ var loadFavourites = function() {
 		console.log("got it");
 		favs = JSON.parse(favs);
 	}
-
-	updateFavourites(favs);
 
 	$(".deleteFavourite").click(function() {
 		var id = $(this).data("index");
