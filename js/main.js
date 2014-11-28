@@ -9,20 +9,34 @@ var lyricsQuery = function(a, s) {
 						+ encodeURIComponent(a) + "&song=" + encodeURIComponent(s);
 }
 
+var startLyricQuiz = function(lyric) {
+	var lines = lyric.split('\n');
+	// remove random word from each line
+	console.log(lyric);
+	for (var i = 0; i < lines.length; i++) {
+		var words = lines[i].split(" ");
+		var j = Math.floor(Math.random()*words.length);
+		words[j] = "_____";
+		lines[i] = words.join(" ");
+	}
+	$("#lyricsview").html(lines.join("<br>"));
+}
+
 var lyricsLoader = function(a, t) {
 	var site = lyricsQuery(a, t);
 	var yql = 'http://query.yahooapis.com/v1/public/yql?q=' + encodeURIComponent('select * from xml where url="' + site + '"') + '&format=xml&callback=?';
+	
+	$.mobile.loading('show', {text: "Loading lyrics...", textVisible: true});
 
 	$.getJSON(yql, function(r) {
 		$.mobile.loading('hide');
+		$('body').pagecontainer("change", "#lyricspage");
 		if (r.query.count == 0) {
 			/* Query failed. */
 			$("#lyricsview").html("Failed to load lyrics. Please try again");
 		} else {
-			console.log(r);
 			var xml = r.results[0];
-			console.log($(xml).find("Lyric").text());
-			$("#lyricsview").html($(xml).find("Lyric").text()).listview("refresh");
+			startLyricQuiz($(xml).find("Lyric").text());
 		}
 	})
 
@@ -58,7 +72,6 @@ var searchByCombined = function(c) {
 		console.log(songs);
 		$("#songresults").html(songresultTemplate({songs: songs})).listview("refresh");
 		$(".openLyrics").on('click', function() {
-			$.mobile.loading('show', {text: "Retrieving lyrics...", textVisible: true});
 			var self = $(this);
 			console.log(self, self.data("artist"), self.data("title"));
 			lyricsLoader(self.data("artist"), self.data("title"));
@@ -69,7 +82,7 @@ var searchByCombined = function(c) {
 var loadFavourites = function() {
 
 	var updateFavourites = function(favs) {
-		return $("#favouriteslist").html(favouritesTemplate({favourites: favs})).listview("refresh");
+		return $("#favouriteslist").html(favouritesTemplate({favourites: favs})).listview();
 	}
 
 	var deleteFavourite = function(id) {
@@ -92,6 +105,8 @@ var loadFavourites = function() {
 		console.log("got it");
 		favs = JSON.parse(favs);
 	}
+
+	updateFavourites(favs);
 
 	$(".deleteFavourite").click(function() {
 		var id = $(this).data("index");
